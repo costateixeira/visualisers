@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ICVP Certificate Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/liquidjs@10.11.0/dist/liquid.browser.min.js"></script>
+  <style>
+    #output { background-color: #f9f9f9; padding: 15px; border: 1px solid #ccc; }
+  </style>
+  <style>
+    body {
+      background-color: white;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .outer-frame {
+      background-color: #FEF9E7; /* Pale yellow */
+      border-radius: 15px;
+      border: 3px solid black;
+      padding: 25px;
+      margin: 30px auto;
+      width: 85%;
+      box-shadow: 7px 7px 20px rgba(0, 0, 0, 0.15);
+    }
+    .certificate {
+      background-color: #FEF9E7;
+      border-radius: 7px;
+      border: px solid black;
+      padding: 20px;
+      margin: 10px;
+      box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: center;
+    }
+  </style>
+
+</head>
+<body>
+  <h1>ICVP Certificate Viewer</h1>
+  <div id="output"></div>
+
+  <script>
+    const engine = new liquidjs.Liquid();
+    
+    async function loadFile(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}`);
+      return response.text();
+    }
+
+    async function renderICVP() {
+      try {
+        const [jsonData, template] = await Promise.all([
+          loadFile('./icvp/data-fhir.json').then(JSON.parse),
+          loadFile('./icvp/icvp-sd.liquid')
+        ]);
+        const output = await engine.parseAndRender(template, { certificate: jsonData });
+        document.getElementById('output').innerHTML = output;
+      } catch (error) {
+        document.getElementById('output').innerHTML = `<strong>Error:</strong> ${error.message}`;
+      }
+    }
+    window.addEventListener('DOMContentLoaded', renderICVP);    
+  </script>
+</body>
+</html>

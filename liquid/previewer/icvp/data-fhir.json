@@ -1,0 +1,80 @@
+{
+    "resourceType": "http://smart.who.int/icvp/StructureDefinition/ICVP",
+    "nid": {
+      "extension": [
+        {
+          "url": "http://smart.who.int/icvp/StructureDefinition/SelectiveDisclosure",
+          "valueCode2": "disclose-icvp-demographic-national-id",
+          "valueCode": "do-not-disclose"
+        }
+      ],
+      "value": "987-65-4321-000"
+    },
+    "vaccineDetails": [
+      {
+        "productID": {
+          "code": "PolioVaccineOralOPVBivalProduct756b50d1047d7e92674342044a986a4e",
+          "system": "http://smart.who.int/pcmt-vaxprequal/CodeSystem/PreQualProductIDs"
+        },
+        "date": "2024-05-23",
+        "clinicianName": "DR A",
+        "_clinicianName": {
+          "extension": [
+            {
+              "url": "http://smart.who.int/icvp/StructureDefinition/SelectiveDisclosure",
+              "valueCode2": "disclose-icvp-vaccination-clinician",
+              "valueCode": "do-not-disclose"
+              
+            }
+          ]
+        },
+        "batchNo": {
+          "coding": [
+            {
+              "display": "67890"
+            }
+          ]
+        },
+        "validityPeriod": {
+          "start": "2024-05-31"
+        }
+      }
+    ],
+    "name": "Test Patient (SD)",
+    "_name": {
+      "extension": [
+        {
+          "url": "http://smart.who.int/icvp/StructureDefinition/SelectiveDisclosure",
+          "valueCode": "disclose-icvp-demographic-name"
+        }
+      ]
+    },
+    "dob": "2023-02-04",
+    "_dob": {
+      "extension": [
+        {
+          "url": "http://smart.who.int/icvp/StructureDefinition/SelectiveDisclosure",
+          "valueCode": "disclose-icvp-demographic-dob"
+        }
+      ]
+    },
+    "sex": "female",
+    "_sex": {
+      "extension": [
+        {
+          "url": "http://smart.who.int/icvp/StructureDefinition/SelectiveDisclosure",
+          "valueCode": "disclose-icvp-demographic-sex"
+        }
+      ]
+    },
+    "nationality": "IND",
+    "_nationality": {
+      "extension": [
+        {
+          "url": "http://smart.who.int/icvp/StructureDefinition/SelectiveDisclosure",
+          "valueCode": "disclose-icvp-demographic-nationality"
+        }
+      ]
+    }
+  }
+  

@@ -1,0 +1,28 @@
+{% assign certificate = certificate %}
+<div class="certificate">
+  <p>This is to certify that ...{{ certificate.name }}..., date of birth ...{{ certificate.dob }}..., sex {{ certificate.sex }}, nationality {{ certificate.nationality }}, national identification document {{ certificate.nid }}...</p>
+  <p>{% if certificate.guardian %}or, if applicable:<br><strong>Parent/Guardian:</strong> {{ certificate.guardian }}{% endif %}</p>
+
+   <p>has on the date indicated been vaccinated or received prophylaxis against:<br>(name of disease or condition) ...</p>
+
+  <h2>Vaccination Details</h2>
+  <table>
+    <tr>
+      <th>Vaccine or prophylaxis</th>
+      <th>Date</th>
+      <th>Supervising Clinician</th>
+      <th>Batch Number</th>
+      <th>Validity Period</th>
+    </tr>
+    {% for vaccine in certificate.vaccineDetails %}
+    <tr>
+      <td>{{ vaccine.productID.text }}</td>
+      <td>{{ vaccine.date }}</td>
+      <td>{{ vaccine.clinicianName }}</td>
+      <td>{{ vaccine.batchNo.coding[0].code }}</td>
+      <td>{{ vaccine.validityPeriod.start }} - {{ vaccine.validityPeriod.end }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p>This certificate is valid only if the vaccine used has been approved by the World Health Organization.</p>
+</div>
