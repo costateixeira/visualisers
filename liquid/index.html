@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FHIR Resource Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/liquidjs@10.11.0/dist/liquid.browser.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.5/mode/javascript/javascript.min.js"></script>
+  <style>
+    body {
+      display: flex;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: white;
+    }
+    .sidebar {
+      width: 300px;
+      padding: 15px;
+      border-right: 2px solid #ccc;
+    }
+    .main-content {
+      flex-grow: 1;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+    .certificate {
+      background-color: #FEF9E7;
+      border-radius: 7px;
+      border: 1px solid black;
+      padding: 20px;
+      margin-top: 10px;
+      box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    #jsonEditorContainer {
+      display: none;
+      margin-bottom: 10px;
+    }
+    .toggle-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
+      text-align: left;
+      margin-top: 5px;
+    }
+    #jsonEditor {
+      height: 250px;
+      border: 1px solid #ccc;
+    }
+    .error-msg {
+      color: red;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+    .editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .render-btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Controls</h2>
+
+    <button class="toggle-btn" onclick="toggleJSONEditor()">JSON Editor</button>
+
+    <br><br>
+    <label><strong>Upload JSON:</strong></label>
+    <input type="file" id="fileInput"><br><br>
+
+    <label><strong>Select Template:</strong></label>
+    <select id="templateSelect">
+      <option value="./templates/icvp-sd.liquid">ICVP Certificate</option>
+      <option value="./templates/basic-view.liquid">Basic View</option>
+    </select>
+
+    <br><br>
+    <button onclick="loadJSONIntoEditor()">Load</button>
+  </div>
+
+  <div class="main-content">
+    <h1>FHIR Resource Viewer</h1>
+
+    <div id="jsonEditorContainer">
+      <div class="editor-header">
+        <h3>JSON Editor</h3>
+        <button class="render-btn" onclick="renderFHIR()">Render</button>
+      </div>
+      <textarea id="jsonEditor"></textarea>
+      <p id="errorMsg" class="error-msg"></p>
+    </div>
+
+    <div id="output" class="certificate"></div>
+  </div>
+
+  <script>
+    const engine = new liquidjs.Liquid();
+    let jsonData = {};
+    let debounceTimer;
+
+    // Initialize CodeMirror JSON editor
+    const jsonEditor = CodeMirror.fromTextArea(document.getElementById('jsonEditor'), {
+      mode: { name: "javascript", json: true },
+      lineNumbers: true,
+      matchBrackets: true,
+      autoCloseBrackets: true,
+      theme: "default"
+    });
+
+    // Function to update JSON and trigger rendering after a delay
+    function updateJSON() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        try {
+          jsonData = JSON.parse(jsonEditor.getValue());
+          document.getElementById('errorMsg').textContent = "";
+          renderFHIR();
+        } catch (error) {
+          document.getElementById('errorMsg').textContent = "Invalid JSON: Fix errors to update rendering.";
+        }
+      }, 1000); // 1-second delay
+    }
+
+    // Listen for changes in the editor and trigger update
+    jsonEditor.on("change", updateJSON);
+
+    // Load JSON into editor when clicking "Load"
+    function loadJSONIntoEditor() {
+      jsonEditor.setValue(JSON.stringify(jsonData, null, 2));
+      updateJSON();
+    }
+
+    // Handle JSON file upload
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          jsonData = JSON.parse(e.target.result);
+          jsonEditor.setValue(JSON.stringify(jsonData, null, 2));
+          renderFHIR();
+        } catch (error) {
+          alert("Invalid JSON file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    async function loadFile(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Failed to load ${url}`);
+      return response.text();
+    }
+
+    async function renderFHIR() {
+      if (!jsonData) {
+        document.getElementById('output').innerHTML = `<strong>Error:</strong> No valid JSON data`;
+        return;
+      }
+
+      const templatePath = document.getElementById('templateSelect').value;
+
+      try {
+        const template = await loadFile(templatePath);
+        const output = await engine.parseAndRender(template, { certificate: jsonData });
+        document.getElementById('output').innerHTML = output;
+      } catch (error) {
+        document.getElementById('output').innerHTML = `<strong>Error:</strong> ${error.message}`;
+      }
+    }
+
+    function toggleJSONEditor() {
+      const container = document.getElementById('jsonEditorContainer');
+
+      // Check the actual display state and toggle accordingly
+      if (container.style.display === 'none' || container.style.display === '') {
+        container.style.display = 'block';
+      } else {
+        container.style.display = 'none';
+      }
+    }
+
+
+  </script>
+
+</body>
+</html>
