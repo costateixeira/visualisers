@@ -1,0 +1,80 @@
+{% assign should_redact = false %}
+{% for ext in certificate.extension %}
+  {% if ext.url == "http://smart.who.int/icvp/StructureDefinition/SelectiveDisclosure" and ext.valueCode == "do-not-disclose" %}
+    {% assign should_redact = true %}
+  {% endif %}
+{% endfor %}
+
+<div class="certificate">
+  <h1 style="text-align:center;">MODEL INTERNATIONAL CERTIFICATE OF VACCINATION OR PROPHYLAXIS</h1>
+  <p>
+    This is to certify that 
+    {% if should_redact or certificate._name.extension[0].valueCode == 'do-not-disclose' %}
+      <span style="background-color:black;color:black;">████████</span>
+    {% else %}
+      {{ certificate.name }}
+    {% endif %},
+    date of birth 
+    {% if should_redact or certificate._dob.extension[0].valueCode == 'do-not-disclose' %}
+      <span style="background-color:black;color:black;">████████</span>
+    {% else %}
+      {{ certificate.dob }}
+    {% endif %},
+    sex 
+    {% if should_redact or certificate._sex.extension[0].valueCode == 'do-not-disclose' %}
+      <span style="background-color:black;color:black;">████████</span>
+    {% else %}
+      {{ certificate.sex }}
+    {% endif %},
+    nationality 
+    {% if should_redact or certificate._nationality.extension[0].valueCode == 'do-not-disclose' %}
+      <span style="background-color:black;color:black;">████████</span>
+    {% else %}
+      {{ certificate.nationality }}
+    {% endif %},
+    national identification document 
+    {% if should_redact or certificate.nid.extension[0].valueCode == 'do-not-disclose' %}
+      <span style="background-color:black;color:black;">████████</span>
+    {% else %}
+      {{ certificate.nid.value }}
+    {% endif %}.
+  </p>
+  
+  <p>has on the date indicated been vaccinated or received prophylaxis against:<br>(name of disease or condition) ..............................................................</p>
+  
+  <h2>Vaccination Details</h2>
+  <table>
+    <tr>
+      <th>Vaccine or prophylaxis</th>
+      <th>Date</th>
+      <th>Supervising Clinician</th>
+      <th>Batch Number</th>
+      <th>Validity Period</th>
+    </tr>
+    {% for vaccine in certificate.vaccineDetails %}
+    {% assign vaccine_should_redact = false %}
+    {% for ext in vaccine.extension %}
+      {% if ext.url == "http://smart.who.int/icvp/StructureDefinition/SelectiveDisclosure" and ext.valueCode == "do-not-disclose" %}
+        {% assign vaccine_should_redact = true %}
+      {% endif %}
+    {% endfor %}
+    <tr>
+      <td>{{ vaccine.productID.code }}</td>
+      <td>{{ vaccine.date }}</td>
+      <td>
+        {% if should_redact or vaccine_should_redact or vaccine._clinicianName.extension[0].valueCode == 'do-not-disclose' %}
+          <span style="background-color:black;color:black;">████████</span>
+        {% else %}
+          {{ vaccine.clinicianName }}
+        {% endif %}
+      </td>
+      <td>{{ vaccine.batchNo.coding[0].display }}</td>
+      <td>{{ vaccine.validityPeriod.start }}{% if vaccine.validityPeriod.end %} - {{ vaccine.validityPeriod.end }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  
+  <p>This certificate is valid only if the vaccine or prophylaxis used has been approved by the World Health Organization.</p>
+  <p><strong>This certificate in non-digital format</strong> must be signed by the supervising clinician and bear the official stamp of the administering center.</p>
+  <p><em>Regardless of format, it must include the clinician’s name or that of the relevant authority responsible for issuing the certificate.</em></p>
+</div>
